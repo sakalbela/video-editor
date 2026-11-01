@@ -34,10 +34,14 @@ small{color:var(--mu)}
 #strip div{background:#2d3a6b center/cover;cursor:pointer;min-width:6px;border-right:1px solid #000;position:relative}
 #strip div.bite{background-color:var(--red);outline:2px solid #ffd3d6;outline-offset:-2px}
 .tr{display:grid;grid-template-columns:56px 1fr 250px;gap:8px;padding:8px;border:1px solid var(--bd);border-radius:8px;margin-bottom:6px;background:var(--bg)}
-.tr.bite{background:var(--bite);grid-template-columns:56px 1fr auto;align-items:center}
+.tr.bite{background:var(--bite)}
+.inf{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--mu);margin-top:4px}.inf input{width:72px;padding:3px}
+.add{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}.add button{margin:0}.add select{width:auto;min-width:200px}
+.tr .top button{white-space:nowrap}
 @media(max-width:700px){.tr{grid-template-columns:50px 1fr}.tr .rt{grid-column:1/3}}
 .tm{font-size:12px;color:var(--mu);white-space:pre;cursor:pointer;text-align:center}
 .tr textarea{min-height:0;font-size:14px}
+details summary{cursor:pointer}
 .dz{display:flex;flex-wrap:wrap;gap:4px;min-height:34px;padding:4px;border:1px dashed var(--bd);border-radius:6px;align-items:center}
 .dz.over{border-color:var(--red);background:var(--bite)}
 .fc{display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:1px 4px;font-size:12px;max-width:100%}
@@ -71,11 +75,11 @@ small{color:var(--mu)}
   <button class="g" id="addb">+ বাইট যোগ করুন</button><br>
   <small>নাম, পদবী ও বক্তব্যের ফাইল দিন। তারপর টাইমলাইনের যে লাইনের পরে বসাতে চান সেখানে "🎤 বাইট বসান" থেকে বেছে নিন।</small>
  </div>
- <div class="card"><h3>৫. স্ক্রিপ্ট</h3>
-  <textarea id="sc" placeholder="ভয়েসওভারের স্ক্রিপ্ট পেস্ট করুন। বাক্যের শেষে দাঁড়ি (।) দিন।"></textarea>
-  <button id="bd" style="margin-top:8px">⟳ টাইমলাইন তৈরি করুন</button><br>
-  <small>স্ক্রিপ্ট বাক্য ধরে ভাগ হবে, ভয়েসের বিরতির সাথে মিলবে এবং ফুটেজ নিজে বসবে। তারপর ডান পাশে নিজের মতো বদলান। স্ক্রিপ্ট বদলালে আবার বোতাম চাপুন (হাতে করা বদল মুছে যাবে)।</small>
- </div>
+ <details class="card"><summary><b>ঐচ্ছিক: পুরো স্ক্রিপ্ট পেস্ট করে একসাথে ভাগ করুন</b></summary>
+  <textarea id="sc" placeholder="পুরো স্ক্রিপ্ট পেস্ট করুন। বাক্যের শেষে দাঁড়ি (।) দিন।"></textarea>
+  <button id="bd" style="margin-top:8px">বাক্য ধরে টাইমলাইনে ভাগ করুন</button><br>
+  <small>এটা না করে সরাসরি টাইমলাইনে একটা একটা করে স্ক্রিপ্ট যোগ করাই মূল পদ্ধতি।</small>
+ </details>
 </section>
 <section>
  <canvas id="cv"></canvas>
@@ -85,8 +89,9 @@ small{color:var(--mu)}
  <button class="g" id="sp">■ থামান</button>
  <div class="card"><h3>টাইমলাইন <small id="ti"></small></h3>
   <div id="strip"></div>
-  <small>ওপরের পট্টিতে বা লাইনের সময়ে ক্লিক করলে সেই অংশের ফ্রেম ওপরে দেখা যাবে।</small>
-  <div id="rows" style="margin-top:8px"><small>ভয়েসওভার ও স্ক্রিপ্ট দিয়ে "টাইমলাইন তৈরি করুন" চাপুন।</small></div>
+  <div class="add"><button id="as">＋ স্ক্রিপ্ট যোগ করুন</button><select id="ab"></select></div>
+  <small>প্রতিটি স্ক্রিপ্ট লাইনের ভয়েস ওই লেখার দৈর্ঘ্য ও ভয়েসের বিরতি ধরে নিজে কাটা হয়। "▶ শুনুন" চেপে কাট ঠিক আছে কিনা দেখুন, দরকারে "অটো" ঘরে নিজে সেকেন্ড দিন। সময়ে বা পট্টিতে ক্লিক করলে ওপরে ফ্রেম দেখাবে।</small>
+  <div id="rows" style="margin-top:8px"></div>
   <div id="tw"></div>
  </div>
  <small>ডাউনলোডের সময় ভিডিও রিয়েল-টাইমে রেকর্ড হয় — শেষ না হওয়া পর্যন্ত ট্যাবটি খোলা ও সামনে রাখুন।</small>
@@ -189,7 +194,7 @@ function buildRows(){
   return{bite,mt,text,bad}}).filter(p=>!p.bad);
  const tagged=P.some(p=>p.mt.length),rows=[];let prev=[];
  for(const p of P){
-  if(p.bite){rows.push({k:'bite',bite:p.bite});continue}
+  if(p.bite){rows.push({k:'bite',bite:p.bite,meds:[]});continue}
   let ss=p.text.split(/(?<=[।?!])\s*/).filter(x=>x.trim());if(!ss.length&&p.mt.length)ss=[''];
   let meds=p.mt;if(tagged){if(!meds.length)meds=prev;else prev=meds}
   ss.forEach(x=>rows.push({k:'vo',text:x,meds:meds.slice()}))}
@@ -205,16 +210,21 @@ function layout(){
  const segs=[];let last=(vr[0].meds||[]).slice(0,1);
  for(const r of rows){
   if(r.k=='vo'){const s={k:'vo',row:r,meds:r.meds,text:r.text,len:Math.max(r.text.length,10)};r._s=s;segs.push(s);if(r.meds.length)last=r.meds.slice(-1)}
-  else{if(!r.bite||!r.bite.m){r._s=null;continue}const s={k:'bite',row:r,bite:r.bite,meds:last,text:''};r._s=s;segs.push(s)}}
- const vsegs=segs.filter(s=>s.k=='vo'),vl=vsegs.reduce((a,s)=>a+s.len,0),vd=S.vo?S.vo.dur:vl*.07;
- const vs=S.pa?S.pa.vs:0,ve=S.pa?S.pa.ve:vd;let cum=0;const B=[0];
- vsegs.forEach((s,i)=>{cum+=s.len;
-  if(i==vsegs.length-1){B.push(vd);return}
-  let tg=vs+(ve-vs)*cum/vl;
-  if(S.pa){const win=Math.min(2.5,.4*(ve-vs)*s.len/vl+.3);let best=null,bs=1e9;
+  else{if(!r.bite||!r.bite.m){r._s=null;continue}const s={k:'bite',row:r,bite:r.bite,meds:(r.meds&&r.meds.length)?r.meds:last,text:''};r._s=s;segs.push(s)}}
+ const vsegs=segs.filter(s=>s.k=='vo'),vd=S.vo?S.vo.dur:vsegs.reduce((a,s)=>a+(s.row.sec||s.len*.07),0);
+ const vs=S.pa?S.pa.vs:0,ve=S.pa?S.pa.ve:vd;
+ const fixedT=vsegs.reduce((a,s)=>a+(s.row.sec||0),0),nonLen=vsegs.reduce((a,s)=>a+(s.row.sec?0:s.len),0)||1,avail=Math.max(1,ve-vs-fixedT);
+ let cumN=0,fixB=0;const B=[0];
+ vsegs.forEach((s,i)=>{
+  const prev=B[B.length-1];
+  if(s.row.sec){fixB+=s.row.sec;B.push(prev+s.row.sec);return}
+  cumN+=s.len;
+  if(i==vsegs.length-1){B.push(Math.max(vd,prev+.6));return}
+  let tg=vs+fixB+avail*cumN/nonLen;
+  if(S.pa){const win=Math.min(2.5,.4*avail*s.len/nonLen+.3);let best=null,bs=1e9;
    for(const z of S.pa.sil){const c=(z.a+z.b)/2,sc=Math.abs(c-tg)-Math.min(z.b-z.a,.8)*.8;if(Math.abs(c-tg)<=win&&sc<bs){bs=sc;best=c}}
    if(best!==null)tg=best}
-  B.push(Math.max(tg,B[B.length-1]+.6))});
+  B.push(Math.max(tg,prev+.6))});
  let t=0,vi=0;const subs=[];
  for(const s of segs){
   s.start=t;
@@ -228,45 +238,71 @@ function layout(){
  const per=Math.max(8,+$('pe').value||25),du=Math.min(Math.max(3,+$('du').value||8),per-1);
  TL={segs,subs,T:t+1.2,per,du};return true}
 /* ---------- টাইমলাইন UI ---------- */
+const fs1=x=>x.toFixed(1);
+let sliceT;
+function playSlice(s){
+ if(run||!S.vo||!s){$('st').textContent='ভয়েসওভার ফাইল দিন';return}
+ clearTimeout(sliceT);const v=S.vo.el;if(AC)AC.resume();
+ v.currentTime=s.vo0;v.play();sliceT=setTimeout(()=>v.pause(),s.dur*1000)}
 function refresh(){layout();renderTL()}
 function showFrame(s){if(run||!TL||!s)return;fonts.then(()=>draw(cl(s.start+.8,2.8,TL.T-1.5)))}
+function stripR(){
+ const sp=$('strip');sp.innerHTML='';
+ if(!TL){$('ti').textContent='';return}
+ $('ti').textContent='— মোট '+fm(TL.T)+(S.pa?' · ভয়েসের '+S.pa.sil.length+'টি বিরতি ধরে মেলানো':'');
+ const tot=TL.T-1.2;
+ TL.segs.forEach(s=>{const d=document.createElement('div');d.className=s.k;d.style.flex=s.dur/tot;
+  const m=s.meds[0];if(m&&m.type=='img')d.style.backgroundImage='url('+m.el.src+')';
+  d.title=fm(s.start)+' '+(s.k=='bite'?s.bite.name:s.text.slice(0,30));d.onclick=()=>showFrame(s);sp.appendChild(d)})}
+function updLabels(){
+ stripR();
+ S.rows.forEach(r=>{
+  if(r._tm)r._tm.textContent=r._s?fm(r._s.start)+'\n'+fm(r._s.end):'—';
+  if(r._inf)r._inf.textContent=r._s?'ভয়েস '+fs1(r._s.vo0)+'→'+fs1(r._s.vo0+r._s.dur)+'s ('+fs1(r._s.dur)+' সে.)':''})}
+function footZone(r){
+ const wrap=document.createElement('div'),dz=document.createElement('div');dz.className='dz';
+ dz.ondragover=e=>{e.preventDefault();dz.classList.add('over')};dz.ondragleave=()=>dz.classList.remove('over');
+ dz.ondrop=e=>{e.preventDefault();const m=S.media[+e.dataTransfer.getData('text/plain')];if(m){r.meds.push(m);refresh()}};
+ r.meds.forEach((m,j)=>{const c=document.createElement('span');c.className='fc';
+  if(m.type=='img'){const g=document.createElement('img');g.src=m.el.src;c.appendChild(g)}else c.append('🎬 ');
+  c.append((S.media.indexOf(m)+1)+'. '+m.name.slice(0,14));
+  const x=document.createElement('button');x.className='x';x.textContent='✕';x.onclick=()=>{r.meds.splice(j,1);refresh()};c.appendChild(x);dz.appendChild(c)});
+ if(!r.meds.length)dz.append(r.k=='bite'?'ফুটেজ (ঐচ্ছিক) ছাড়ুন':'ফুটেজ এখানে ছাড়ুন');
+ const s1=document.createElement('select');s1.add(new Option('＋ ফুটেজ',''));S.media.forEach((m,j)=>s1.add(new Option((j+1)+'. '+m.name,j)));
+ s1.onchange=()=>{if(s1.value!==''){r.meds.push(S.media[+s1.value]);refresh()}};
+ wrap.append(dz,s1);return wrap}
 function renderTL(){
- const sp=$('strip'),box=$('rows');sp.innerHTML='';box.innerHTML='';
+ const box=$('rows');box.innerHTML='';
  const w=[...bwarn];if(!S.vo)w.push('ভয়েসওভার দেননি — আনুমানিক সময় ধরা হয়েছে');if(!S.media.length)w.push('কোনো ফুটেজ দেননি');
  S.bites.forEach((b,j)=>{if(!b.m&&S.rows.some(r=>r.bite===b))w.push('বাইটের ফাইল নেই: '+(b.name||'নামহীন '+(j+1)))});
- if(!S.rows.length){box.innerHTML='<small>ভয়েসওভার ও স্ক্রিপ্ট দিয়ে "টাইমলাইন তৈরি করুন" চাপুন।</small>';$('ti').textContent='';$('tw').textContent='';return}
- if(TL){$('ti').textContent='— মোট '+fm(TL.T)+(S.pa?' · ভয়েসের '+S.pa.sil.length+'টি বিরতি ধরে মেলানো':'');
-  const tot=TL.T-1.2;
-  TL.segs.forEach(s=>{const d=document.createElement('div');d.className=s.k;d.style.flex=s.dur/tot;
-   const m=s.meds[0];if(m&&m.type=='img')d.style.backgroundImage='url('+m.el.src+')';
-   d.title=fm(s.start)+' '+(s.k=='bite'?s.bite.name:s.text.slice(0,30));d.onclick=()=>showFrame(s);sp.appendChild(d)})}
+ const ab=$('ab');ab.innerHTML='';ab.add(new Option('🎤 বাইট যোগ করুন…',''));S.bites.forEach((b,j)=>ab.add(new Option(b.name||'নামহীন '+(j+1),j)));
+ $('tw').textContent=S.rows.length&&w.length?'⚠ '+w.join('\n⚠ '):'';
+ if(!S.rows.length){box.innerHTML='<small>"＋ স্ক্রিপ্ট যোগ করুন" চেপে শুরু করুন।</small>';stripR();return}
+ const mkb=(t,ti,fn)=>{const b=document.createElement('button');b.className='x';b.textContent=t;b.title=ti;b.onclick=fn;return b};
  S.rows.forEach((r,i)=>{
-  const el=document.createElement('div'),tm=document.createElement('div');
-  el.className='tr '+r.k;tm.className='tm';tm.textContent=r._s?fm(r._s.start)+'\n'+fm(r._s.end):'—';tm.onclick=()=>showFrame(r._s);
-  const del=document.createElement('button');del.className='x';del.textContent='✕';del.title='এই লাইন মুছুন';del.onclick=()=>{S.rows.splice(i,1);refresh()};
-  if(r.k=='bite'){
-   const t=document.createElement('div');t.innerHTML='';
-   t.textContent='🎤 বাইট: '+(r.bite.name||'নামহীন')+(r.bite.desig?' — '+r.bite.desig:'')+(r.bite.m?' ('+Math.round(r.bite.m.dur||0)+' সে.)':' ⚠ ফাইল নেই');
-   el.append(tm,t,del);box.appendChild(el);return}
-  const ta=document.createElement('textarea');ta.rows=2;ta.value=r.text;ta.onchange=()=>{r.text=ta.value.trim();refresh()};
-  const rt=document.createElement('div');rt.className='rt';
-  const dz=document.createElement('div');dz.className='dz';
-  dz.ondragover=e=>{e.preventDefault();dz.classList.add('over')};dz.ondragleave=()=>dz.classList.remove('over');
-  dz.ondrop=e=>{e.preventDefault();const m=S.media[+e.dataTransfer.getData('text/plain')];if(m){r.meds.push(m);refresh()}};
-  r.meds.forEach((m,j)=>{const c=document.createElement('span');c.className='fc';
-   if(m.type=='img'){const g=document.createElement('img');g.src=m.el.src;c.appendChild(g)}else c.append('🎬 ');
-   c.append((S.media.indexOf(m)+1)+'. '+m.name.slice(0,14));
-   const x=document.createElement('button');x.className='x';x.textContent='✕';x.onclick=()=>{r.meds.splice(j,1);refresh()};c.appendChild(x);dz.appendChild(c)});
-  if(!r.meds.length)dz.append('ফুটেজ এখানে ছাড়ুন');
-  const top=document.createElement('div');top.className='top';
-  const s1=document.createElement('select');s1.add(new Option('＋ ফুটেজ',''));S.media.forEach((m,j)=>s1.add(new Option((j+1)+'. '+m.name,j)));
-  s1.onchange=()=>{if(s1.value!==''){r.meds.push(S.media[+s1.value]);refresh()}};
+  const el=document.createElement('div'),tm=document.createElement('div'),mid=document.createElement('div'),rt=document.createElement('div');
+  el.className='tr '+r.k;tm.className='tm';tm.onclick=()=>showFrame(r._s);r._tm=tm;r._inf=null;rt.className='rt';
+  if(r.k=='vo'){
+   const ta=document.createElement('textarea');ta.rows=3;ta.placeholder='এই অংশের স্ক্রিপ্ট লিখুন বা পেস্ট করুন…';ta.value=r.text;
+   ta.oninput=()=>{r.text=ta.value.trim();layout();updLabels()};
+   if(r===S.focus){setTimeout(()=>ta.focus(),0);S.focus=null}
+   const inf=document.createElement('div'),sp=document.createElement('span'),sc=document.createElement('input');inf.className='inf';r._inf=sp;
+   sc.type='number';sc.step='.1';sc.min='.5';sc.placeholder='অটো';sc.title='এই অংশের ভয়েসের সময় (সেকেন্ড) নিজে দিতে চাইলে';sc.value=r.sec||'';
+   sc.oninput=()=>{r.sec=+sc.value||0;layout();updLabels()};
+   inf.append(sp,mkb('▶ শুনুন','এই অংশের ভয়েস শুনুন',()=>playSlice(r._s)),sc);mid.append(ta,inf)}
+  else{mid.textContent='🎤 বাইট: '+(r.bite.name||'নামহীন')+(r.bite.desig?' — '+r.bite.desig:'')+(r.bite.m?' ('+Math.round(r.bite.m.dur||0)+' সে.)':' ⚠ ফাইল নেই')}
   const s2=document.createElement('select');s2.add(new Option('🎤 এরপর বাইট বসান',''));S.bites.forEach((b,j)=>s2.add(new Option(b.name||'নামহীন '+(j+1),j)));
-  s2.onchange=()=>{if(s2.value!==''){S.rows.splice(i+1,0,{k:'bite',bite:S.bites[+s2.value]});refresh()}};
-  top.append(s1,s2,del);rt.append(dz,top);
-  el.append(tm,ta,rt);box.appendChild(el)});
- $('tw').textContent=w.length?'⚠ '+w.join('\n⚠ '):''}
-$('bd').onclick=buildRows;
+  s2.onchange=()=>{if(s2.value!==''){S.rows.splice(i+1,0,{k:'bite',bite:S.bites[+s2.value],meds:[]});refresh()}};
+  const top=document.createElement('div');top.className='top';
+  top.append(mkb('＋ স্ক্রিপ্ট','নিচে নতুন স্ক্রিপ্ট',()=>{const n={k:'vo',text:'',meds:[]};S.rows.splice(i+1,0,n);S.focus=n;refresh()}),
+   mkb('↑','উপরে',()=>{if(i>0){[S.rows[i-1],S.rows[i]]=[S.rows[i],S.rows[i-1]];refresh()}}),
+   mkb('↓','নিচে',()=>{if(i<S.rows.length-1){[S.rows[i+1],S.rows[i]]=[S.rows[i],S.rows[i+1]];refresh()}}),
+   mkb('✕','মুছুন',()=>{S.rows.splice(i,1);refresh()}));
+  rt.append(footZone(r),s2,top);el.append(tm,mid,rt);box.appendChild(el)});
+ updLabels()}
+$('as').onclick=()=>{const n={k:'vo',text:'',meds:[]};S.rows.push(n);S.focus=n;refresh()};
+$('ab').onchange=()=>{const v=$('ab').value;if(v!==''){S.rows.push({k:'bite',bite:S.bites[+v],meds:[]});refresh()}};
+$('bd').onclick=()=>{if(S.rows.length&&!confirm('টাইমলাইনের বর্তমান লাইনগুলো মুছে যাবে। চালিয়ে যাবেন?'))return;buildRows()};
 /* ---------- drawing ---------- */
 const bl=document.createElement('canvas');bl.width=64;bl.height=36;const bx=bl.getContext('2d');
 const MO=[[1,1.16,0,0,0,0],[1.16,1,0,0,0,0],[1.14,1.14,-.04,.04,0,0],[1.14,1.14,.04,-.04,0,0],[1.08,1.2,0,0,.02,-.03],[1.2,1.06,-.025,.025,-.02,.02]];
@@ -335,7 +371,7 @@ function stopAll(){S.media.forEach(m=>m.type=='vid'&&m.el.pause());S.bites.forEa
 async function go(rec){
  if(run)return;
  await fonts;if(S.ap)await S.ap;
- if(!S.rows.length&&!buildRows())return;
+ if(!S.rows.length){if(!($('sc').value.trim()&&buildRows())){$('st').textContent='টাইমলাইনে স্ক্রিপ্ট যোগ করুন';return}}
  layout();if(!TL){$('st').textContent='টাইমলাইন খালি';return}
  initAudio();await AC.resume();
  let mr,ch=[];
