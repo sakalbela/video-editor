@@ -4,18 +4,18 @@
 <title>নিউজ প্যাকেজ এডিটর</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@500;800&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f3f3f6;--card:#fff;--tx:#17171b;--mu:#6b6b76;--bd:#d9d9e0;--red:#d90f1f}
-@media(prefers-color-scheme:dark){:root{--bg:#121216;--card:#1c1c22;--tx:#f1f1f4;--mu:#9a9aa6;--bd:#33333c}}
+:root{--bg:#f3f3f6;--card:#fff;--tx:#17171b;--mu:#6b6b76;--bd:#d9d9e0;--red:#d90f1f;--bite:#fdecee}
+@media(prefers-color-scheme:dark){:root{--bg:#121216;--card:#1c1c22;--tx:#f1f1f4;--mu:#9a9aa6;--bd:#33333c;--bite:#3a1a1e}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 "Hind Siliguri",system-ui,sans-serif}
 header{background:var(--red);color:#fff;padding:12px 20px;font:800 20px "Noto Serif Bengali",serif}
-main{display:grid;grid-template-columns:minmax(300px,440px) 1fr;gap:16px;padding:16px;max-width:1500px;margin:auto}
+main{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:16px;padding:16px;max-width:1600px;margin:auto}
 @media(max-width:900px){main{grid-template-columns:1fr}}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:14px}
 h3{margin:0 0 8px;font-size:16px}
 label{display:block;font-size:13px;color:var(--mu);margin:8px 0 2px}
-input[type=text],input[type=number],textarea{width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--tx);font:inherit}
-textarea{min-height:230px;resize:vertical}
+input[type=text],input[type=number],textarea,select{width:100%;padding:7px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--tx);font:inherit}
+textarea{min-height:200px;resize:vertical}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--bd)}
 .row input[type=file]{font-size:13px;min-width:0}
 .fr{display:flex;gap:6px;align-items:center}.fr input{flex:1;min-width:0}
@@ -25,12 +25,25 @@ button.g{background:var(--bd);color:var(--tx)}
 button.x{padding:1px 8px;margin:0;font-size:13px;background:var(--bd);color:var(--tx);border-radius:5px}
 canvas{width:100%;background:#000;border-radius:10px;display:block}
 .chips{display:flex;flex-direction:column;gap:5px;margin-top:6px}
-.chips span{display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:3px 6px;font-size:13px}
+.chips span{display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:3px 6px;font-size:13px;cursor:grab}
 .chips b{flex:1;font-weight:500;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chips img{width:38px;height:26px;object-fit:cover;border-radius:3px}
-#tl{font-size:13px;white-space:pre-wrap;color:var(--mu)}
+.chips img,.fc img{width:38px;height:26px;object-fit:cover;border-radius:3px}
 #st{font-weight:600;margin:6px 0}
 small{color:var(--mu)}
+#strip{display:flex;gap:2px;height:46px;margin:10px 0;border-radius:6px;overflow:hidden}
+#strip div{background:#2d3a6b center/cover;cursor:pointer;min-width:6px;border-right:1px solid #000;position:relative}
+#strip div.bite{background-color:var(--red);outline:2px solid #ffd3d6;outline-offset:-2px}
+.tr{display:grid;grid-template-columns:56px 1fr 250px;gap:8px;padding:8px;border:1px solid var(--bd);border-radius:8px;margin-bottom:6px;background:var(--bg)}
+.tr.bite{background:var(--bite);grid-template-columns:56px 1fr auto;align-items:center}
+@media(max-width:700px){.tr{grid-template-columns:50px 1fr}.tr .rt{grid-column:1/3}}
+.tm{font-size:12px;color:var(--mu);white-space:pre;cursor:pointer;text-align:center}
+.tr textarea{min-height:0;font-size:14px}
+.dz{display:flex;flex-wrap:wrap;gap:4px;min-height:34px;padding:4px;border:1px dashed var(--bd);border-radius:6px;align-items:center}
+.dz.over{border-color:var(--red);background:var(--bite)}
+.fc{display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:1px 4px;font-size:12px;max-width:100%}
+.rt select{margin-top:4px;font-size:13px}
+.rt .top{display:flex;gap:4px}
+#tw{font-size:13px;color:#b25b00;white-space:pre-wrap}
 </style></head><body>
 <header>নিউজ প্যাকেজ এডিটর</header>
 <main>
@@ -48,18 +61,20 @@ small{color:var(--mu)}
   <label>সাদা লোগো (ডানে উপরে)</label><div class="fr"><input type="file" id="lw" accept="image/*"><button class="x" id="lwx" title="মুছুন">✕</button></div>
   <small>লোগো একবার দিলে এই ব্রাউজারে সেভ থাকে।</small>
  </div>
- <div class="card"><h3>৩. ছবি ও ভিডিও</h3>
+ <div class="card"><h3>৩. ছবি ও ভিডিও (ফুটেজ)</h3>
   <input type="file" id="md" accept="image/*,video/*" multiple>
   <div class="chips" id="chips"></div>
-  <small>↑ ↓ দিয়ে ক্রম বদলান, ✕ দিয়ে মুছুন। নামের ওপর ক্লিক করলে স্ক্রিপ্টে ট্যাগ বসবে।</small>
+  <small>↑ ↓ দিয়ে ক্রম বদলান, ✕ দিয়ে মুছুন। ফুটেজ টেনে ডান পাশের টাইমলাইনের লাইনে ছেড়ে দিতে পারেন।</small>
  </div>
  <div class="card"><h3>৪. বাইট (বক্তব্য)</h3>
   <div id="bites"></div>
-  <button class="g" id="addb">+ বাইট যোগ করুন</button>
+  <button class="g" id="addb">+ বাইট যোগ করুন</button><br>
+  <small>নাম, পদবী ও বক্তব্যের ফাইল দিন। তারপর টাইমলাইনের যে লাইনের পরে বসাতে চান সেখানে "🎤 বাইট বসান" থেকে বেছে নিন।</small>
  </div>
  <div class="card"><h3>৫. স্ক্রিপ্ট</h3>
-  <textarea id="sc" placeholder="স্ক্রিপ্ট পেস্ট করুন। কোনো ট্যাগ না দিলে ছবি/ভিডিও আপলোডের ক্রমে অটো সাজবে।&#10;&#10;বাইট বসাতে আলাদা লাইনে লিখুন:&#10;[বাইট: রহিম উদ্দিন]"></textarea>
-  <small><b>অটো:</b> ট্যাগ ছাড়া স্ক্রিপ্ট দিলে ভয়েসের বিরতি (pause) ধরে বাক্য মিলিয়ে ছবি/ভিডিও নিজেই বসবে। <b>নিজে বসাতে:</b> লাইনের শুরুতে [ফাইলের নাম] লিখুন (একাধিক দিলে সময় সমান ভাগ হবে)। <b>বাইট:</b> [বাইট: নাম] আলাদা লাইনে।</small>
+  <textarea id="sc" placeholder="ভয়েসওভারের স্ক্রিপ্ট পেস্ট করুন। বাক্যের শেষে দাঁড়ি (।) দিন।"></textarea>
+  <button id="bd" style="margin-top:8px">⟳ টাইমলাইন তৈরি করুন</button><br>
+  <small>স্ক্রিপ্ট বাক্য ধরে ভাগ হবে, ভয়েসের বিরতির সাথে মিলবে এবং ফুটেজ নিজে বসবে। তারপর ডান পাশে নিজের মতো বদলান। স্ক্রিপ্ট বদলালে আবার বোতাম চাপুন (হাতে করা বদল মুছে যাবে)।</small>
  </div>
 </section>
 <section>
@@ -68,20 +83,27 @@ small{color:var(--mu)}
  <button id="pv">▶ প্রিভিউ</button>
  <button id="rc">⬇ ভিডিও তৈরি ও ডাউনলোড (১০৮০p)</button>
  <button class="g" id="sp">■ থামান</button>
- <div class="card"><h3>টাইমলাইন</h3><div id="tl">প্রিভিউ চালালে এখানে সাজানো টাইমলাইন দেখা যাবে।</div></div>
+ <div class="card"><h3>টাইমলাইন <small id="ti"></small></h3>
+  <div id="strip"></div>
+  <small>ওপরের পট্টিতে বা লাইনের সময়ে ক্লিক করলে সেই অংশের ফ্রেম ওপরে দেখা যাবে।</small>
+  <div id="rows" style="margin-top:8px"><small>ভয়েসওভার ও স্ক্রিপ্ট দিয়ে "টাইমলাইন তৈরি করুন" চাপুন।</small></div>
+  <div id="tw"></div>
+ </div>
  <small>ডাউনলোডের সময় ভিডিও রিয়েল-টাইমে রেকর্ড হয় — শেষ না হওয়া পর্যন্ত ট্যাবটি খোলা ও সামনে রাখুন।</small>
 </section>
 </main>
 <script>
 const $=i=>document.getElementById(i);
 const cv=$('cv'),ctx=cv.getContext('2d'),W=1920,H=1080;cv.width=W;cv.height=H;
-const S={media:[],bites:[],logoR:null,logoW:null,vo:null,voFile:null,pa:null,ap:null};
-let AC,master,dest,TL=null,run=null;
+const S={media:[],bites:[],rows:[],logoR:null,logoW:null,vo:null,voFile:null,pa:null,ap:null};
+let AC,master,dest,TL=null,run=null,bwarn=[];
 const U=f=>URL.createObjectURL(f);
 const eo=p=>1-Math.pow(1-p,3);
 const bo=p=>{const c=1.70158;return 1+(c+1)*Math.pow(p-1,3)+c*Math.pow(p-1,2)};
 const cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const fm=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');
 const im=s=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=s});
+const fonts=Promise.all([document.fonts.load('800 40px "Noto Serif Bengali"','আ'),document.fonts.load('500 34px "Hind Siliguri"','আ')]);
 function mk(f){
  if(!f)return Promise.resolve(null);
  if(f.type.startsWith('image/'))return im(U(f)).then(el=>el&&{name:f.name,type:'img',el,w:el.naturalWidth,h:el.naturalHeight});
@@ -89,41 +111,44 @@ function mk(f){
  el.src=U(f);el.preload='auto';el.playsInline=true;
  return new Promise(r=>{el.onloadedmetadata=()=>r({name:f.name,type:v?'vid':'aud',el,w:el.videoWidth,h:el.videoHeight,dur:el.duration});el.onerror=()=>r(null)});
 }
-/* ---------- uploads ---------- */
+/* ---------- ফুটেজ ---------- */
 $('md').onchange=async e=>{
  for(const f of e.target.files){const m=await mk(f);if(!m)continue;
   if(m.type=='vid'){m.el.muted=true;m.el.loop=true}
   S.media.push(m)}
- e.target.value='';chips()};
-function mv(i,d){const j=i+d;if(j<0||j>=S.media.length)return;[S.media[i],S.media[j]]=[S.media[j],S.media[i]];chips()}
+ e.target.value='';chips();refresh()};
+function mv(i,d){const j=i+d;if(j<0||j>=S.media.length)return;[S.media[i],S.media[j]]=[S.media[j],S.media[i]];chips();renderTL()}
 function chips(){
  const c=$('chips');c.innerHTML='';
  S.media.forEach((m,i)=>{
   const s=document.createElement('span'),n=document.createElement('b');
+  s.draggable=true;s.ondragstart=e=>e.dataTransfer.setData('text/plain',String(i));
   if(m.type=='img'){const t=document.createElement('img');t.src=m.el.src;s.appendChild(t)}
-  n.textContent=(m.type=='img'?'':'🎬 ')+(i+1)+'. '+m.name;n.title='ক্লিক করলে স্ক্রিপ্টে ট্যাগ বসবে';
+  n.textContent=(m.type=='img'?'':'🎬 ')+(i+1)+'. '+m.name;n.title='ক্লিক করলে স্ক্রিপ্টে ট্যাগ বসবে (ঐচ্ছিক)';
   n.onclick=()=>{const sc=$('sc');sc.value+=((sc.value&&!sc.value.endsWith('\n'))?'\n':'')+'['+m.name+'] '};
   const bt=(t,fn)=>{const b=document.createElement('button');b.textContent=t;b.className='x';b.onclick=fn;return b};
-  s.append(n,bt('↑',()=>mv(i,-1)),bt('↓',()=>mv(i,1)),bt('✕',()=>{m.el.pause&&m.el.pause();S.media.splice(i,1);chips()}));
+  s.append(n,bt('↑',()=>mv(i,-1)),bt('↓',()=>mv(i,1)),bt('✕',()=>{m.el.pause&&m.el.pause();S.media.splice(i,1);S.rows.forEach(r=>r.meds&&(r.meds=r.meds.filter(x=>x!==m)));chips();refresh()}));
   c.appendChild(s)})}
-$('vo').onchange=async e=>{S.voFile=e.target.files[0];S.vo=await mk(S.voFile);S.ap=analyze()};
-$('vx').onclick=()=>{S.vo=null;S.voFile=null;S.pa=null;$('vo').value=''};
+$('vo').onchange=async e=>{S.voFile=e.target.files[0];S.vo=await mk(S.voFile);S.ap=analyze().then(refresh)};
+$('vx').onclick=()=>{S.vo=null;S.voFile=null;S.pa=null;$('vo').value='';refresh()};
 function logo(id,key,store,xid){
  $(id).onchange=e=>{const fr=new FileReader();fr.onload=async()=>{S[key]=await im(fr.result);try{localStorage.setItem(store,fr.result)}catch(_){}};fr.readAsDataURL(e.target.files[0])};
  $(xid).onclick=()=>{S[key]=null;$(id).value='';try{localStorage.removeItem(store)}catch(_){}};
  try{const d=localStorage.getItem(store);if(d)im(d).then(i=>S[key]=i)}catch(_){}}
 logo('lr','logoR','nl_r','lrx');logo('lw','logoW','nl_w','lwx');
+/* ---------- বাইট ---------- */
 function addBite(){
  const d=document.createElement('div');d.className='row';
  d.innerHTML='<input type="text" placeholder="নাম"><input type="text" placeholder="পদবী"><input type="file" accept="audio/*,video/*"><button class="x" title="মুছুন">✕</button>';
  const b={name:'',desig:'',m:null};S.bites.push(b);
  const [n,p,f]=d.querySelectorAll('input');
  n.oninput=()=>b.name=n.value.trim();p.oninput=()=>b.desig=p.value.trim();
- f.onchange=async()=>{b.m=await mk(f.files[0])};
- d.querySelector('button').onclick=()=>{b.m&&b.m.el.pause();S.bites.splice(S.bites.indexOf(b),1);d.remove()};
- $('bites').appendChild(d)}
-$('addb').onclick=addBite;addBite();
-/* ---------- ভয়েসের বিরতি বিশ্লেষণ (অটো ম্যাচের জন্য) ---------- */
+ n.onchange=p.onchange=refresh;
+ f.onchange=async()=>{b.m=await mk(f.files[0]);refresh()};
+ d.querySelector('button').onclick=()=>{b.m&&b.m.el.pause();S.bites.splice(S.bites.indexOf(b),1);S.rows=S.rows.filter(r=>r.bite!==b);d.remove();refresh()};
+ $('bites').appendChild(d);refresh()}
+$('addb').onclick=addBite;
+/* ---------- ভয়েসের বিরতি বিশ্লেষণ ---------- */
 async function analyze(){
  S.pa=null;const f=S.voFile;if(!f)return;
  try{
@@ -150,36 +175,38 @@ function tone(f0,f1,dur,vol,type='sine'){const at=AC.currentTime,o=AC.createOsci
  g.gain.setValueAtTime(vol,at);g.gain.exponentialRampToValueAtTime(.001,at+dur);o.connect(g);g.connect(master);o.start(at);o.stop(at+dur)}
 const hit=()=>{tone(110,38,.9,.55);whoosh(.3,.9)};
 const pop=()=>{tone(700,1250,.14,.16,'triangle')};
-/* ---------- timeline ---------- */
-async function prep(){
- await document.fonts.load('800 40px "Noto Serif Bengali"','আ');await document.fonts.load('500 34px "Hind Siliguri"','আ');
- if(S.ap)await S.ap;
+/* ---------- স্ক্রিপ্ট → সারি ---------- */
+function buildRows(){
  const warn=[],lines=$('sc').value.split('\n').map(s=>s.trim()).filter(Boolean);
  if(!lines.length){$('st').textContent='স্ক্রিপ্ট লিখুন';return false}
- if(!S.media.length)warn.push('কোনো ছবি/ভিডিও দেননি');
  const P=lines.map(ln=>{
   const tags=[...ln.matchAll(/\[([^\]]+)\]/g)].map(m=>m[1].trim()),text=ln.replace(/\[[^\]]*\]/g,'').trim();
   let bite=null,mt=[],bad=false;
   for(const t of tags){
    const m=t.match(/^(বাইট|bite)\s*[:：]\s*(.+)$/i);
-   if(m){const q=m[2].trim();bite=S.bites.find(b=>b.name&&b.m&&(b.name.includes(q)||q.includes(b.name)));if(!bite){warn.push('বাইট পাওয়া যায়নি/ফাইল নেই: '+q);bad=true}}
-   else{const f=S.media.find(x=>x.name.toLowerCase().includes(t.toLowerCase()));if(f)mt.push(f);else warn.push('মিডিয়া পাওয়া যায়নি: '+t)}}
+   if(m){const q=m[2].trim();bite=S.bites.find(b=>b.name&&(b.name.includes(q)||q.includes(b.name)));if(!bite){warn.push('বাইট পাওয়া যায়নি: '+q);bad=true}}
+   else{const f=S.media.find(x=>x.name.toLowerCase().includes(t.toLowerCase()));if(f)mt.push(f);else warn.push('ফুটেজ পাওয়া যায়নি: '+t)}}
   return{bite,mt,text,bad}}).filter(p=>!p.bad);
- const auto=S.media.length>0&&!P.some(p=>p.mt.length);
- let segs=[],prev=[];
+ const tagged=P.some(p=>p.mt.length),rows=[];let prev=[];
  for(const p of P){
-  if(p.bite){segs.push({k:'bite',bite:p.bite,meds:[],text:p.text});continue}
-  if(auto){(p.text.split(/(?<=[।?!])\s*/).filter(x=>x.trim())).forEach(x=>segs.push({k:'vo',meds:[],text:x,len:Math.max(x.length,10)}))}
-  else{let meds=p.mt;if(!meds.length)meds=prev;else prev=meds;segs.push({k:'vo',meds,text:p.text,len:Math.max(p.text.length,10)})}
- }
- const vsegs=segs.filter(s=>s.k=='vo');
- if(!vsegs.length){$('st').textContent='ভয়েসওভারের কোনো লাইন নেই';return false}
- if(auto){const N=vsegs.length,M=S.media.length;
-  vsegs.forEach((s,k)=>{const a=Math.floor(k*M/N),b=Math.min(M,Math.max(Math.floor((k+1)*M/N),a+1));s.meds=S.media.slice(a,b)});
-  let last=[];segs.forEach(s=>{if(s.k=='vo')last=s.meds.slice(-1);else s.meds=last})}
- /* সময় ভাগ: লেখার দৈর্ঘ্য অনুযায়ী, ভয়েসের বিরতিতে স্ন্যাপ */
- const vl=vsegs.reduce((a,s)=>a+s.len,0),vd=S.vo?S.vo.dur:vl*.07;
- if(!S.vo)warn.push('ভয়েসওভার দেননি — আনুমানিক সময় ধরা হয়েছে');
+  if(p.bite){rows.push({k:'bite',bite:p.bite});continue}
+  let ss=p.text.split(/(?<=[।?!])\s*/).filter(x=>x.trim());if(!ss.length&&p.mt.length)ss=[''];
+  let meds=p.mt;if(tagged){if(!meds.length)meds=prev;else prev=meds}
+  ss.forEach(x=>rows.push({k:'vo',text:x,meds:meds.slice()}))}
+ const vr=rows.filter(r=>r.k=='vo');
+ if(!vr.length){$('st').textContent='ভয়েসওভারের কোনো লাইন নেই';return false}
+ if(!tagged&&S.media.length){const N=vr.length,M=S.media.length;
+  vr.forEach((r,k)=>{const a=Math.floor(k*M/N),b=Math.min(M,Math.max(Math.floor((k+1)*M/N),a+1));r.meds=S.media.slice(a,b)})}
+ S.rows=rows;bwarn=warn;refresh();return true}
+/* ---------- সময় হিসাব ---------- */
+function layout(){
+ TL=null;const rows=S.rows,vr=rows.filter(r=>r.k=='vo');
+ if(!vr.length)return false;
+ const segs=[];let last=(vr[0].meds||[]).slice(0,1);
+ for(const r of rows){
+  if(r.k=='vo'){const s={k:'vo',row:r,meds:r.meds,text:r.text,len:Math.max(r.text.length,10)};r._s=s;segs.push(s);if(r.meds.length)last=r.meds.slice(-1)}
+  else{if(!r.bite||!r.bite.m){r._s=null;continue}const s={k:'bite',row:r,bite:r.bite,meds:last,text:''};r._s=s;segs.push(s)}}
+ const vsegs=segs.filter(s=>s.k=='vo'),vl=vsegs.reduce((a,s)=>a+s.len,0),vd=S.vo?S.vo.dur:vl*.07;
  const vs=S.pa?S.pa.vs:0,ve=S.pa?S.pa.ve:vd;let cum=0;const B=[0];
  vsegs.forEach((s,i)=>{cum+=s.len;
   if(i==vsegs.length-1){B.push(vd);return}
@@ -188,7 +215,7 @@ async function prep(){
    for(const z of S.pa.sil){const c=(z.a+z.b)/2,sc=Math.abs(c-tg)-Math.min(z.b-z.a,.8)*.8;if(Math.abs(c-tg)<=win&&sc<bs){bs=sc;best=c}}
    if(best!==null)tg=best}
   B.push(Math.max(tg,B[B.length-1]+.6))});
- let t=0,vi=0,subs=[];
+ let t=0,vi=0;const subs=[];
  for(const s of segs){
   s.start=t;
   if(s.k=='vo'){s.vo0=B[vi];s.dur=Math.max(.5,B[vi+1]-B[vi]);vi++}else s.dur=s.bite.m.dur||5;
@@ -199,12 +226,47 @@ async function prep(){
   list.forEach((x,i)=>{x.s=s.start+s.dur*i/list.length;x.e=s.start+s.dur*(i+1)/list.length;x.seg=s;x.i=subs.length;subs.push(x)});
  }
  const per=Math.max(8,+$('pe').value||25),du=Math.min(Math.max(3,+$('du').value||8),per-1);
- TL={segs,subs,T:t+1.2,per,du};
- const f=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');
- $('tl').textContent=(auto?'মোড: অটো (ছবি/ভিডিও আপলোডের ক্রমে)':'মোড: ট্যাগ অনুযায়ী')+(S.pa?' · ভয়েসের '+S.pa.sil.length+'টি বিরতি ধরে মেলানো':' · লেখার দৈর্ঘ্য ধরে মেলানো')+'\n\n'
-  +segs.map(s=>f(s.start)+'–'+f(s.end)+'  '+(s.k=='bite'?'🎤 বাইট: '+s.bite.name:'🎙 ভিও')+'  ['+s.meds.map(m=>m.name).join(', ')+']  '+s.text.slice(0,40)).join('\n')
-  +(warn.length?'\n\n⚠ '+warn.join('\n⚠ '):'')+'\n\nমোট: '+f(TL.T);
- return true}
+ TL={segs,subs,T:t+1.2,per,du};return true}
+/* ---------- টাইমলাইন UI ---------- */
+function refresh(){layout();renderTL()}
+function showFrame(s){if(run||!TL||!s)return;fonts.then(()=>draw(cl(s.start+.8,2.8,TL.T-1.5)))}
+function renderTL(){
+ const sp=$('strip'),box=$('rows');sp.innerHTML='';box.innerHTML='';
+ const w=[...bwarn];if(!S.vo)w.push('ভয়েসওভার দেননি — আনুমানিক সময় ধরা হয়েছে');if(!S.media.length)w.push('কোনো ফুটেজ দেননি');
+ S.bites.forEach((b,j)=>{if(!b.m&&S.rows.some(r=>r.bite===b))w.push('বাইটের ফাইল নেই: '+(b.name||'নামহীন '+(j+1)))});
+ if(!S.rows.length){box.innerHTML='<small>ভয়েসওভার ও স্ক্রিপ্ট দিয়ে "টাইমলাইন তৈরি করুন" চাপুন।</small>';$('ti').textContent='';$('tw').textContent='';return}
+ if(TL){$('ti').textContent='— মোট '+fm(TL.T)+(S.pa?' · ভয়েসের '+S.pa.sil.length+'টি বিরতি ধরে মেলানো':'');
+  const tot=TL.T-1.2;
+  TL.segs.forEach(s=>{const d=document.createElement('div');d.className=s.k;d.style.flex=s.dur/tot;
+   const m=s.meds[0];if(m&&m.type=='img')d.style.backgroundImage='url('+m.el.src+')';
+   d.title=fm(s.start)+' '+(s.k=='bite'?s.bite.name:s.text.slice(0,30));d.onclick=()=>showFrame(s);sp.appendChild(d)})}
+ S.rows.forEach((r,i)=>{
+  const el=document.createElement('div'),tm=document.createElement('div');
+  el.className='tr '+r.k;tm.className='tm';tm.textContent=r._s?fm(r._s.start)+'\n'+fm(r._s.end):'—';tm.onclick=()=>showFrame(r._s);
+  const del=document.createElement('button');del.className='x';del.textContent='✕';del.title='এই লাইন মুছুন';del.onclick=()=>{S.rows.splice(i,1);refresh()};
+  if(r.k=='bite'){
+   const t=document.createElement('div');t.innerHTML='';
+   t.textContent='🎤 বাইট: '+(r.bite.name||'নামহীন')+(r.bite.desig?' — '+r.bite.desig:'')+(r.bite.m?' ('+Math.round(r.bite.m.dur||0)+' সে.)':' ⚠ ফাইল নেই');
+   el.append(tm,t,del);box.appendChild(el);return}
+  const ta=document.createElement('textarea');ta.rows=2;ta.value=r.text;ta.onchange=()=>{r.text=ta.value.trim();refresh()};
+  const rt=document.createElement('div');rt.className='rt';
+  const dz=document.createElement('div');dz.className='dz';
+  dz.ondragover=e=>{e.preventDefault();dz.classList.add('over')};dz.ondragleave=()=>dz.classList.remove('over');
+  dz.ondrop=e=>{e.preventDefault();const m=S.media[+e.dataTransfer.getData('text/plain')];if(m){r.meds.push(m);refresh()}};
+  r.meds.forEach((m,j)=>{const c=document.createElement('span');c.className='fc';
+   if(m.type=='img'){const g=document.createElement('img');g.src=m.el.src;c.appendChild(g)}else c.append('🎬 ');
+   c.append((S.media.indexOf(m)+1)+'. '+m.name.slice(0,14));
+   const x=document.createElement('button');x.className='x';x.textContent='✕';x.onclick=()=>{r.meds.splice(j,1);refresh()};c.appendChild(x);dz.appendChild(c)});
+  if(!r.meds.length)dz.append('ফুটেজ এখানে ছাড়ুন');
+  const top=document.createElement('div');top.className='top';
+  const s1=document.createElement('select');s1.add(new Option('＋ ফুটেজ',''));S.media.forEach((m,j)=>s1.add(new Option((j+1)+'. '+m.name,j)));
+  s1.onchange=()=>{if(s1.value!==''){r.meds.push(S.media[+s1.value]);refresh()}};
+  const s2=document.createElement('select');s2.add(new Option('🎤 এরপর বাইট বসান',''));S.bites.forEach((b,j)=>s2.add(new Option(b.name||'নামহীন '+(j+1),j)));
+  s2.onchange=()=>{if(s2.value!==''){S.rows.splice(i+1,0,{k:'bite',bite:S.bites[+s2.value]});refresh()}};
+  top.append(s1,s2,del);rt.append(dz,top);
+  el.append(tm,ta,rt);box.appendChild(el)});
+ $('tw').textContent=w.length?'⚠ '+w.join('\n⚠ '):''}
+$('bd').onclick=buildRows;
 /* ---------- drawing ---------- */
 const bl=document.createElement('canvas');bl.width=64;bl.height=36;const bx=bl.getContext('2d');
 const MO=[[1,1.16,0,0,0,0],[1.16,1,0,0,0,0],[1.14,1.14,-.04,.04,0,0],[1.14,1.14,.04,-.04,0,0],[1.08,1.2,0,0,.02,-.03],[1.2,1.06,-.025,.025,-.02,.02]];
@@ -248,7 +310,6 @@ function draw(t){
  if(t>1.9){const a=cl((t-1.9)/.5);ctx.save();ctx.globalAlpha=a;ctx.translate((1-eo(a))*60,0);
   if(S.logoW){const w=320,h=w*S.logoW.naturalHeight/S.logoW.naturalWidth;ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=14;ctx.drawImage(S.logoW,W-60-w,50,w,h)}
   ctx.restore()}
- /* পপ-আপ: শিরোনাম + প্রতিবেদক */
  const cs=segs.find(s=>t>=s.start&&t<s.end);
  if(cs&&cs.k=='bite'){
   const sh=shift(t-(cs.start+.3),cs.dur-.5);
@@ -273,7 +334,9 @@ function draw(t){
 function stopAll(){S.media.forEach(m=>m.type=='vid'&&m.el.pause());S.bites.forEach(b=>b.m&&b.m.el.pause());S.vo&&S.vo.el.pause()}
 async function go(rec){
  if(run)return;
- if(!await prep())return;
+ await fonts;if(S.ap)await S.ap;
+ if(!S.rows.length&&!buildRows())return;
+ layout();if(!TL){$('st').textContent='টাইমলাইন খালি';return}
  initAudio();await AC.resume();
  let mr,ch=[];
  if(rec){
@@ -310,5 +373,7 @@ async function go(rec){
 $('pv').onclick=()=>go(false);
 $('rc').onclick=()=>go(true);
 $('sp').onclick=()=>run&&run.stop();
+$('pe').onchange=$('du').onchange=refresh;
+addBite();
 ctx.fillStyle='#111';ctx.fillRect(0,0,W,H);
 </script></body></html>
