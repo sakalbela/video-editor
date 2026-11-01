@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="bn"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>নিউজ প্যাকেজ এডিটর</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@500;800&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f3f6;--card:#fff;--tx:#17171b;--mu:#6b6b76;--bd:#d9d9e0;--red:#d90f1f}
+@media(prefers-color-scheme:dark){:root{--bg:#121216;--card:#1c1c22;--tx:#f1f1f4;--mu:#9a9aa6;--bd:#33333c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 "Hind Siliguri",system-ui,sans-serif}
+header{background:var(--red);color:#fff;padding:12px 20px;font:800 20px "Noto Serif Bengali",serif}
+main{display:grid;grid-template-columns:minmax(300px,440px) 1fr;gap:16px;padding:16px;max-width:1500px;margin:auto}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:14px}
+h3{margin:0 0 8px;font-size:16px}
+label{display:block;font-size:13px;color:var(--mu);margin:8px 0 2px}
+input[type=text],textarea{width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--tx);font:inherit}
+textarea{min-height:230px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--bd)}
+.row input[type=file]{grid-column:1/3;font-size:13px}
+button{font:600 15px inherit;font-family:inherit;border:0;border-radius:8px;padding:10px 16px;cursor:pointer;background:var(--red);color:#fff;margin:0 6px 6px 0}
+button.g{background:var(--bd);color:var(--tx)}
+canvas{width:100%;background:#000;border-radius:10px;display:block}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.chips span{background:var(--bg);border:1px solid var(--bd);border-radius:14px;padding:1px 9px;font-size:12px;cursor:pointer}
+#tl{font-size:13px;white-space:pre-wrap;color:var(--mu)}
+#st{font-weight:600;margin:6px 0}
+small{color:var(--mu)}
+</style></head><body>
+<header>নিউজ প্যাকেজ এডিটর</header>
+<main>
+<section>
+ <div class="card"><h3>১. শিরোনাম ও প্রতিবেদক</h3>
+  <label>শিরোনাম</label><input type="text" id="hl" placeholder="যেমন: নিকলীতে শিক্ষামন্ত্রীর পদত্যাগের দাবীতে মানববন্ধন">
+  <label>প্রতিবেদকের নাম</label><input type="text" id="rn">
+  <label>ঠিকানা / পদ</label><input type="text" id="ra" placeholder="জেলা প্রতিনিধি, কিশোরগঞ্জ">
+ </div>
+ <div class="card"><h3>২. ভয়েসওভার ও লোগো</h3>
+  <label>ভয়েসওভার অডিও</label><input type="file" id="vo" accept="audio/*,video/*">
+  <label>লাল গোল লোগো (ইন্ট্রো পপ-আপ)</label><input type="file" id="lr" accept="image/*">
+  <label>সাদা লোগো (ডানে উপরে)</label><input type="file" id="lw" accept="image/*">
+  <small>লোগো একবার দিলে এই ব্রাউজারে সেভ থাকবে।</small>
+ </div>
+ <div class="card"><h3>৩. ছবি ও ভিডিও</h3>
+  <input type="file" id="md" accept="image/*,video/*" multiple>
+  <div class="chips" id="chips"></div>
+  <small>নামের ওপর ক্লিক করলে স্ক্রিপ্টে ট্যাগ বসবে।</small>
+ </div>
+ <div class="card"><h3>৪. বাইট (বক্তব্য)</h3>
+  <div id="bites"></div>
+  <button class="g" id="addb">+ বাইট যোগ করুন</button>
+ </div>
+ <div class="card"><h3>৫. স্ক্রিপ্ট</h3>
+  <textarea id="sc" placeholder="[ছবি১.jpg] ভয়েসওভারের প্রথম লাইন...&#10;[video2.mp4][ছবি৩.jpg] পরের লাইন, দুটি মিডিয়া সমান ভাগ হবে...&#10;[বাইট: রহিম উদ্দিন]&#10;[ছবি১.jpg] বাইটের পরের ভয়েসওভার..."></textarea>
+  <small>প্রতি লাইনে [ফাইলের নাম] ট্যাগ + সেই লাইনের ভয়েসওভার। বাইট বসাতে <b>[বাইট: নাম]</b> আলাদা লাইনে লিখুন। ট্যাগ না দিলে আগের ছবি/ভিডিও চলবে। ভয়েসওভার লাইনের দৈর্ঘ্য অনুযায়ী সময় ভাগ হবে।</small>
+ </div>
+</section>
+<section>
+ <canvas id="cv"></canvas>
+ <div id="st">প্রস্তুত</div>
+ <button id="pv">▶ প্রিভিউ</button>
+ <button id="rc">⬇ ভিডিও তৈরি ও ডাউনলোড (১০৮০p)</button>
+ <button class="g" id="sp">■ থামান</button>
+ <div class="card"><h3>টাইমলাইন</h3><div id="tl">প্রিভিউ চালালে এখানে সাজানো টাইমলাইন দেখা যাবে।</div></div>
+ <small>ডাউনলোডের সময় ভিডিও রিয়েল-টাইমে রেকর্ড হয় — শেষ না হওয়া পর্যন্ত ট্যাবটি খোলা ও সামনে রাখুন।</small>
+</section>
+</main>
+<script>
+const $=i=>document.getElementById(i);
+const cv=$('cv'),ctx=cv.getContext('2d'),W=1920,H=1080;cv.width=W;cv.height=H;
+const S={media:[],bites:[],logoR:null,logoW:null,vo:null};
+let AC,master,dest,TL=null,run=null;
+const U=f=>URL.createObjectURL(f);
+const eo=p=>1-Math.pow(1-p,3);
+const bo=p=>{const c=1.70158;return 1+(c+1)*Math.pow(p-1,3)+c*Math.pow(p-1,2)};
+const cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const im=s=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=s});
+function mk(f){
+ if(!f)return Promise.resolve(null);
+ if(f.type.startsWith('image/'))return im(U(f)).then(el=>el&&{name:f.name,type:'img',el,w:el.naturalWidth,h:el.naturalHeight});
+ const v=f.type.startsWith('video/'),el=document.createElement(v?'video':'audio');
+ el.src=U(f);el.preload='auto';el.playsInline=true;
+ return new Promise(r=>{el.onloadedmetadata=()=>r({name:f.name,type:v?'vid':'aud',el,w:el.videoWidth,h:el.videoHeight,dur:el.duration});el.onerror=()=>r(null)});
+}
+/* ---------- uploads ---------- */
+$('md').onchange=async e=>{
+ for(const f of e.target.files){const m=await mk(f);if(!m)continue;
+  if(m.type=='vid'){m.el.muted=true;m.el.loop=true}
+  S.media.push(m)}
+ e.target.value='';chips()};
+function chips(){const c=$('chips');c.innerHTML='';S.media.forEach(m=>{const s=document.createElement('span');s.textContent=(m.type=='img'?'🖼 ':'🎬 ')+m.name;
+ s.onclick=()=>{$('sc').value+=(($('sc').value&&!$('sc').value.endsWith('\n'))?'\n':'')+'['+m.name+'] '};c.appendChild(s)})}
+$('vo').onchange=async e=>{S.vo=await mk(e.target.files[0])};
+function logo(id,key,store){
+ $(id).onchange=e=>{const fr=new FileReader();fr.onload=async()=>{S[key]=await im(fr.result);try{localStorage.setItem(store,fr.result)}catch(_){}};fr.readAsDataURL(e.target.files[0])};
+ try{const d=localStorage.getItem(store);if(d)im(d).then(i=>S[key]=i)}catch(_){}}
+logo('lr','logoR','nl_r');logo('lw','logoW','nl_w');
+function addBite(){
+ const d=document.createElement('div');d.className='row';
+ d.innerHTML='<input type="text" placeholder="নাম"><input type="text" placeholder="পদবী"><input type="file" accept="audio/*,video/*">';
+ const b={name:'',desig:'',m:null};S.bites.push(b);
+ const [n,p,f]=d.querySelectorAll('input');
+ n.oninput=()=>b.name=n.value.trim();p.oninput=()=>b.desig=p.value.trim();
+ f.onchange=async()=>{b.m=await mk(f.files[0])};
+ $('bites').appendChild(d)}
+$('addb').onclick=addBite;addBite();
+/* ---------- audio / sfx ---------- */
+function initAudio(){if(AC)return;AC=new AudioContext();master=AC.createGain();dest=AC.createMediaStreamDestination();master.connect(dest);master.connect(AC.destination)}
+function tap(el){if(!el._t){el._t=AC.createMediaElementSource(el);el._t.connect(master)}}
+function whoosh(vol=.22,dur=.55){const at=AC.currentTime,n=AC.createBufferSource(),b=AC.createBuffer(1,AC.sampleRate*dur,AC.sampleRate),d=b.getChannelData(0);
+ for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;n.buffer=b;
+ const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=1.1;f.frequency.setValueAtTime(250,at);f.frequency.exponentialRampToValueAtTime(3800,at+dur*.8);
+ const g=AC.createGain();g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(vol,at+dur*.35);g.gain.linearRampToValueAtTime(0,at+dur);
+ n.connect(f);f.connect(g);g.connect(master);n.start(at)}
+function tone(f0,f1,dur,vol,type='sine'){const at=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type=type;
+ o.frequency.setValueAtTime(f0,at);o.frequency.exponentialRampToValueAtTime(f1,at+dur);
+ g.gain.setValueAtTime(vol,at);g.gain.exponentialRampToValueAtTime(.001,at+dur);o.connect(g);g.connect(master);o.start(at);o.stop(at+dur)}
+const hit=()=>{tone(110,38,.9,.55);whoosh(.3,.9)};
+const pop=()=>{tone(700,1250,.14,.16,'triangle')};
+/* ---------- timeline ---------- */
+async function prep(){
+ await document.fonts.load('800 40px "Noto Serif Bengali"','আ');await document.fonts.load('500 34px "Hind Siliguri"','আ');
+ const warn=[],lines=$('sc').value.split('\n').map(s=>s.trim()).filter(Boolean);
+ if(!lines.length){$('st').textContent='স্ক্রিপ্ট লিখুন';return false}
+ let segs=[],prev=[];
+ for(const ln of lines){
+  const tags=[...ln.matchAll(/\[([^\]]+)\]/g)].map(m=>m[1].trim()),text=ln.replace(/\[[^\]]*\]/g,'').trim();
+  let bite=null,meds=[],bad=false;
+  for(const t of tags){
+   const m=t.match(/^(বাইট|bite)\s*[:：]\s*(.+)$/i);
+   if(m){const q=m[2].trim();bite=S.bites.find(b=>b.name&&b.m&&(b.name.includes(q)||q.includes(b.name)));if(!bite){warn.push('বাইট পাওয়া যায়নি/ফাইল নেই: '+q);bad=true}}
+   else{const f=S.media.find(x=>x.name.toLowerCase().includes(t.toLowerCase()));if(f)meds.push(f);else warn.push('মিডিয়া পাওয়া যায়নি: '+t)}}
+  if(bad)continue;
+  if(!meds.length)meds=prev;else prev=meds;
+  segs.push(bite?{k:'bite',bite,meds,text}:{k:'vo',meds,text,len:Math.max(text.length,10)});
+ }
+ const vl=segs.filter(s=>s.k=='vo').reduce((a,s)=>a+s.len,0);
+ const vd=S.vo?S.vo.dur:vl*.07;
+ if(!S.vo)warn.push('ভয়েসওভার দেননি — আনুমানিক সময় ধরা হয়েছে');
+ let t=0,off=0,subs=[];
+ for(const s of segs){
+  s.start=t;
+  if(s.k=='vo'){s.dur=vd*s.len/vl;s.vo0=off;off+=s.dur}else s.dur=s.bite.m.dur||5;
+  s.end=t+s.dur;t=s.end;
+  let list;
+  if(s.k=='bite'&&s.bite.m.type=='vid')list=[{m:s.bite.m}];
+  else list=s.meds.length?s.meds.map(m=>({m})):[{m:null}];
+  list.forEach((x,i)=>{x.s=s.start+s.dur*i/list.length;x.e=s.start+s.dur*(i+1)/list.length;x.seg=s;x.i=subs.length;subs.push(x)});
+ }
+ TL={segs,subs,T:t+1.2};
+ const f=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');
+ $('tl').textContent=segs.map(s=>f(s.start)+'–'+f(s.end)+'  '+(s.k=='bite'?'🎤 বাইট: '+s.bite.name:'🎙 ভিও')+'  ['+s.meds.map(m=>m.name).join(', ')+']  '+s.text.slice(0,40)).join('\n')+(warn.length?'\n\n⚠ '+warn.join('\n⚠ '):'')+'\n\nমোট: '+f(TL.T);
+ return true}
+/* ---------- drawing ---------- */
+function drawSub(sb,t,p,frozen){
+ const m=sb.m,u=frozen?1:cl((t-sb.s)/(sb.e-sb.s)),e=eo(p),tr=sb.i%4;
+ let a=1,px=0,zm=1;
+ if(!frozen&&p<1){if(tr==0||tr==2)a=e;if(tr==1)px=(1-e)*W;if(tr==3)px=-(1-e)*W;if(tr==2)zm=1+(1-e)*.3}
+ ctx.save();ctx.globalAlpha=a;
+ if(!m){const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,'#1b2145');g.addColorStop(1,'#0a0c1c');ctx.fillStyle=g;ctx.fillRect(px,0,W,H)}
+ else if(m.w){const z=(m.type=='img'?1.04+.08*u:1)*zm,s=Math.max(W/m.w,H/m.h)*z,dw=m.w*s,dh=m.h*s;ctx.drawImage(m.el,(W-dw)/2+px,(H-dh)/2,dw,dh)}
+ ctx.restore()}
+function tag(a,b,t0,t1,t,y){
+ const k=cl(Math.min((t-t0)/.4,(t1-t)/.4));if(k<=0)return;
+ ctx.save();ctx.globalAlpha=k;ctx.translate((eo(k)-1)*80,0);ctx.textBaseline='middle';
+ ctx.font='800 40px "Noto Serif Bengali",serif';const w1=ctx.measureText(a).width+50;
+ ctx.fillStyle='#d90f1f';ctx.fillRect(80,y,w1,64);ctx.fillStyle='#fff';ctx.fillText(a,105,y+34);
+ if(b){ctx.font='500 34px "Hind Siliguri",sans-serif';const w2=ctx.measureText(b).width+50;ctx.fillStyle='rgba(255,255,255,.96)';ctx.fillRect(80+w1,y,w2,64);ctx.fillStyle='#111';ctx.fillText(b,105+w1,y+34)}
+ ctx.restore()}
+function draw(t){
+ const {segs,subs,T}=TL;
+ ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+ const sb=subs.find(s=>t>=s.s&&t<s.e)||subs[subs.length-1];
+ if(sb){const p=sb.i==0?1:cl((t-sb.s)/.6);if(sb.i>0&&p<1)drawSub(subs[sb.i-1],t,1,true);drawSub(sb,t,p)}
+ const g=ctx.createLinearGradient(0,560,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.78)');ctx.fillStyle=g;ctx.fillRect(0,560,W,H-560);
+ if(t<2.3){ctx.fillStyle='rgba(0,0,0,'+(.55*cl(1-(t-1.7)/.6))+')';ctx.fillRect(0,0,W,H)}
+ /* intro logo pop-up */
+ if(t<2.4){
+  let s=t<.7?bo(t/.7):1,a=1;if(t>1.7){const q=(t-1.7)/.7;a=1-q;s*=1-q*.3}
+  ctx.save();ctx.globalAlpha=cl(a);ctx.translate(W/2,H/2);ctx.scale(s,s);
+  if(S.logoR){const w=440,h=w*S.logoR.naturalHeight/S.logoR.naturalWidth;ctx.drawImage(S.logoR,-w/2,-h/2,w,h)}
+  else{ctx.fillStyle='#d90f1f';ctx.beginPath();ctx.arc(0,0,200,0,7);ctx.fill()}
+  ctx.restore()}
+ /* white wordmark top-right */
+ if(t>1.9){const a=cl((t-1.9)/.5);ctx.save();ctx.globalAlpha=a;ctx.translate((1-eo(a))*60,0);
+  if(S.logoW){const w=320,h=w*S.logoW.naturalHeight/S.logoW.naturalWidth;ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=14;ctx.drawImage(S.logoW,W-60-w,50,w,h)}
+  ctx.restore()}
+ /* lower third */
+ const L=t-2.4;
+ if(L>0){
+  const by=H-170+(1-eo(cl(L/.5)))*220,hl=$('hl').value.trim();
+  ctx.save();ctx.fillStyle='rgba(8,12,36,.94)';ctx.fillRect(80,by,W-160,110);ctx.fillStyle='#d90f1f';ctx.fillRect(80,by,16,110);
+  let sz=58;ctx.font=`800 ${sz}px "Noto Serif Bengali",serif`;while(ctx.measureText(hl).width>W-160-80&&sz>28){sz-=2;ctx.font=`800 ${sz}px "Noto Serif Bengali",serif`}
+  ctx.fillStyle='#fff';ctx.textBaseline='middle';ctx.fillText(hl,125,by+58);ctx.restore();
+  const cs=segs.find(s=>t>=s.start&&t<s.end);
+  if(cs&&cs.k=='bite')tag(cs.bite.name,cs.bite.desig,cs.start+.3,cs.end-.2,t,by-84);
+  else{const rn=$('rn').value.trim(),ra=$('ra').value.trim();if(rn){tag(rn,ra,2.9,9,t,by-84);tag(rn,ra,T-7,T-1.6,t,by-84)}}
+ }
+ if(t>T-1){ctx.fillStyle='rgba(0,0,0,'+cl(t-(T-1))+')';ctx.fillRect(0,0,W,H)}
+}
+/* ---------- playback / record ---------- */
+function stopAll(){S.media.forEach(m=>m.type=='vid'&&m.el.pause());S.bites.forEach(b=>b.m&&b.m.el.pause());S.vo&&S.vo.el.pause()}
+async function go(rec){
+ if(run)return;
+ if(!await prep())return;
+ initAudio();await AC.resume();
+ let mr,ch=[];
+ if(rec){
+  const st=cv.captureStream(30);dest.stream.getAudioTracks().forEach(x=>st.addTrack(x));
+  const mime=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm'].find(m=>MediaRecorder.isTypeSupported(m))||'';
+  mr=new MediaRecorder(st,mime?{mimeType:mime,videoBitsPerSecond:12e6}:{});
+  mr.ondataavailable=e=>e.data.size&&ch.push(e.data);
+  mr.onstop=()=>{const b=new Blob(ch,{type:mr.mimeType}),a=document.createElement('a');a.href=U(b);a.download='news-package.'+(mr.mimeType.includes('mp4')?'mp4':'webm');a.click();$('st').textContent='✅ ডাউনলোড হয়েছে'+(mr.mimeType.includes('mp4')?'':' (WebM — mp4 দরকার হলে কনভার্ট করুন)')};
+  mr.start(500)}
+ const {segs,subs,T}=TL;let ls=null,lsub=null,raf;
+ if(S.vo)tap(S.vo.el);S.bites.forEach(b=>b.m&&tap(b.m.el));
+ hit();const t0=performance.now();
+ const end=()=>{cancelAnimationFrame(raf);stopAll();run=null;mr&&mr.state!='inactive'&&mr.stop();if(!rec)$('st').textContent='প্রিভিউ শেষ'};
+ run={stop:end};
+ const tick=()=>{
+  const t=(performance.now()-t0)/1000;
+  if(t>=T){draw(T);end();return}
+  $('st').textContent=(rec?'⏺ রেকর্ড হচ্ছে… ':'▶ ')+Math.floor(t)+' / '+Math.floor(T)+' সেকেন্ড';
+  const sg=segs.find(s=>t>=s.start&&t<s.end);
+  if(sg&&sg!==ls){
+   if(ls&&ls.k=='bite')ls.bite.m.el.pause();
+   if(sg.k=='vo'&&S.vo){const v=S.vo.el;if(Math.abs(v.currentTime-sg.vo0)>.2)v.currentTime=sg.vo0;v.play()}
+   else if(sg.k=='bite'){S.vo&&S.vo.el.pause();sg.bite.m.el.currentTime=0;sg.bite.m.el.play();pop()}
+   ls=sg}
+  const sb=subs.find(s=>t>=s.s&&t<s.e);
+  if(sb&&sb!==lsub){
+   if(lsub){if(lsub.m&&lsub.m.type=='vid'&&lsub.seg.k=='vo')setTimeout(()=>lsub&&lsub.m!==sb.m&&0,0)}
+   if(lsub)whoosh();
+   if(sb.m&&sb.m.type=='vid'&&sb.seg.k=='vo'){sb.m.el.currentTime=0;sb.m.el.play()}
+   lsub=sb}
+  if(t>2.4&&t<2.45)pop();
+  draw(t);raf=requestAnimationFrame(tick)};
+ tick()}
+$('pv').onclick=()=>go(false);
+$('rc').onclick=()=>go(true);
+$('sp').onclick=()=>run&&run.stop();
+ctx.fillStyle='#111';ctx.fillRect(0,0,W,H);
+</script></body></html>
