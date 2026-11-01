@@ -48,6 +48,11 @@ details summary{cursor:pointer}
 .rt select{margin-top:4px;font-size:13px}
 .rt .top{display:flex;gap:4px}
 #tw{font-size:13px;color:#b25b00;white-space:pre-wrap}
+.lg{width:44px;height:30px;object-fit:contain;background:#555;border-radius:4px;display:none}
+.sk{display:flex;gap:10px;align-items:center;margin:8px 0}.sk input{flex:1}.sk span{font-size:13px;color:var(--mu);white-space:nowrap}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:9;padding:10px}
+.modal[hidden]{display:none}.mb{background:var(--card);padding:14px;border-radius:12px;max-width:96vw;max-height:96vh;overflow:auto}
+.mb canvas{max-width:100%;touch-action:none;cursor:move;display:block;margin-top:8px;border-radius:6px}
 </style></head><body>
 <header>নিউজ প্যাকেজ এডিটর</header>
 <main>
@@ -61,9 +66,9 @@ details summary{cursor:pointer}
  </div>
  <div class="card"><h3>২. ভয়েসওভার ও লোগো</h3>
   <label>ভয়েসওভার অডিও</label><div class="fr"><input type="file" id="vo" accept="audio/*,video/*"><button class="x" id="vx" title="মুছুন">✕</button></div>
-  <label>লাল গোল লোগো (ইন্ট্রো পপ-আপ)</label><div class="fr"><input type="file" id="lr" accept="image/*"><button class="x" id="lrx" title="মুছুন">✕</button></div>
-  <label>সাদা লোগো (ডানে উপরে)</label><div class="fr"><input type="file" id="lw" accept="image/*"><button class="x" id="lwx" title="মুছুন">✕</button></div>
-  <small>লোগো একবার দিলে এই ব্রাউজারে সেভ থাকে।</small>
+  <label>লাল গোল লোগো (ইন্ট্রো পপ-আপ)</label><div class="fr"><img class="lg" id="lrp"><input type="file" id="lr" accept="image/*"><button class="x" id="lrx" title="মুছুন">✕</button></div><small id="lrs"></small>
+  <label>সাদা লোগো (ডানে উপরে)</label><div class="fr"><img class="lg" id="lwp"><input type="file" id="lw" accept="image/*"><button class="x" id="lwx" title="মুছুন">✕</button></div><small id="lws"></small>
+  <small>একবার দিলেই এই ব্রাউজারে স্থায়ী সেভ থাকবে, পরেরবার নিজে আসবে। সব কম্পিউটারে নিজে আসতে চাইলে repo-তে <b>logo-red.png</b> ও <b>logo-white.png</b> নামে ছবি রেখে দিন।</small>
  </div>
  <div class="card"><h3>৩. ছবি ও ভিডিও (ফুটেজ)</h3>
   <input type="file" id="md" accept="image/*,video/*" multiple>
@@ -83,10 +88,11 @@ details summary{cursor:pointer}
 </section>
 <section>
  <canvas id="cv"></canvas>
+ <div class="sk"><input type="range" id="sk" min="0" max="1000" step="1" value="0"><span id="skt">0:00 / 0:00</span></div>
  <div id="st">প্রস্তুত</div>
  <button id="pv">▶ প্রিভিউ</button>
  <button id="rc">⬇ ভিডিও তৈরি ও ডাউনলোড (১০৮০p)</button>
- <button class="g" id="sp">■ থামান</button>
+ <button class="g" id="sp">■ শুরুতে ফিরুন</button>
  <div class="card"><h3>টাইমলাইন <small id="ti"></small></h3>
   <div id="strip"></div>
   <div class="add"><button id="as">＋ স্ক্রিপ্ট যোগ করুন</button><select id="ab"></select></div>
@@ -97,10 +103,14 @@ details summary{cursor:pointer}
  <small>ডাউনলোডের সময় ভিডিও রিয়েল-টাইমে রেকর্ড হয় — শেষ না হওয়া পর্যন্ত ট্যাবটি খোলা ও সামনে রাখুন।</small>
 </section>
 </main>
+<div class="modal" id="cm" hidden><div class="mb"><b>ফুটেজ ক্রপ (১৬:৯ ফ্রেম)</b><br><small>ছবির ওপর টেনে সরান। স্লাইডার বা মাউস হুইলে জুম করুন।</small>
+<canvas id="cc"></canvas>
+<div class="fr" style="margin:8px 0"><span>জুম</span><input type="range" id="cz" min="1" max="5" step="0.01" value="1"></div>
+<button id="cok">✔ ক্রপ রাখুন</button><button class="g" id="crs">মূল ছবি (ক্রপ নেই)</button><button class="g" id="cx">বাতিল</button></div></div>
 <script>
 const $=i=>document.getElementById(i);
 const cv=$('cv'),ctx=cv.getContext('2d'),W=1920,H=1080;cv.width=W;cv.height=H;
-const S={media:[],bites:[],rows:[],logoR:null,logoW:null,vo:null,voFile:null,pa:null,ap:null};
+const S={pos:0,media:[],bites:[],rows:[],logoR:null,logoW:null,vo:null,voFile:null,pa:null,ap:null};
 let AC,master,dest,TL=null,run=null,bwarn=[];
 const U=f=>URL.createObjectURL(f);
 const eo=p=>1-Math.pow(1-p,3);
@@ -129,18 +139,36 @@ function chips(){
   const s=document.createElement('span'),n=document.createElement('b');
   s.draggable=true;s.ondragstart=e=>e.dataTransfer.setData('text/plain',String(i));
   if(m.type=='img'){const t=document.createElement('img');t.src=m.el.src;s.appendChild(t)}
-  n.textContent=(m.type=='img'?'':'🎬 ')+(i+1)+'. '+m.name;n.title='ক্লিক করলে স্ক্রিপ্টে ট্যাগ বসবে (ঐচ্ছিক)';
+  n.textContent=(m.crop?'✂ ':'')+(m.type=='img'?'':'🎬 ')+(i+1)+'. '+m.name;n.title='ক্লিক করলে স্ক্রিপ্টে ট্যাগ বসবে (ঐচ্ছিক)';
   n.onclick=()=>{const sc=$('sc');sc.value+=((sc.value&&!sc.value.endsWith('\n'))?'\n':'')+'['+m.name+'] '};
   const bt=(t,fn)=>{const b=document.createElement('button');b.textContent=t;b.className='x';b.onclick=fn;return b};
-  s.append(n,bt('↑',()=>mv(i,-1)),bt('↓',()=>mv(i,1)),bt('✕',()=>{m.el.pause&&m.el.pause();S.media.splice(i,1);S.rows.forEach(r=>r.meds&&(r.meds=r.meds.filter(x=>x!==m)));chips();refresh()}));
+  s.append(n,bt('✂','ক্রপ করুন',()=>openCrop(m)),bt('↑',()=>mv(i,-1)),bt('↓',()=>mv(i,1)),bt('✕',()=>{m.el.pause&&m.el.pause();S.media.splice(i,1);S.rows.forEach(r=>r.meds&&(r.meds=r.meds.filter(x=>x!==m)));chips();refresh()}));
   c.appendChild(s)})}
 $('vo').onchange=async e=>{S.voFile=e.target.files[0];S.vo=await mk(S.voFile);S.ap=analyze().then(refresh)};
 $('vx').onclick=()=>{S.vo=null;S.voFile=null;S.pa=null;$('vo').value='';refresh()};
-function logo(id,key,store,xid){
- $(id).onchange=e=>{const fr=new FileReader();fr.onload=async()=>{S[key]=await im(fr.result);try{localStorage.setItem(store,fr.result)}catch(_){}};fr.readAsDataURL(e.target.files[0])};
- $(xid).onclick=()=>{S[key]=null;$(id).value='';try{localStorage.removeItem(store)}catch(_){}};
- try{const d=localStorage.getItem(store);if(d)im(d).then(i=>S[key]=i)}catch(_){}}
-logo('lr','logoR','nl_r','lrx');logo('lw','logoW','nl_w','lwx');
+/* ---------- স্থায়ী মেমোরি (IndexedDB) ---------- */
+const DB={o(){return this._p||(this._p=new Promise((res,rej)=>{const r=indexedDB.open('newsEditor',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}))},
+ async run(mode,fn){try{const db=await this.o();return await new Promise(res=>{const tx=db.transaction('kv',mode),q=fn(tx.objectStore('kv'));tx.oncomplete=()=>res(q&&q.result);tx.onerror=tx.onabort=()=>res(null)})}catch(e){return null}},
+ get(k){return this.run('readonly',s=>s.get(k))},set(k,v){return this.run('readwrite',s=>s.put(v,k))},del(k){return this.run('readwrite',s=>s.delete(k))}};
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(_){}
+const LG={lr:{key:'logoR',st:'logo_red',file:'logo-red.png'},lw:{key:'logoW',st:'logo_white',file:'logo-white.png'}};
+function lgUI(id){const g=LG[id],i=S[g.key],p=$(id+'p');p.style.display=i?'block':'none';if(i)p.src=i.src;
+ $(id+'s').textContent=i?(g.from=='repo'?'✅ repo-র ফাইল থেকে নিজে এসেছে':'✅ মেমোরিতে সেভ আছে — আবার দিতে হবে না'):'লোগো নেই'}
+async function lgSet(id,blob,save){const g=LG[id];S[g.key]=await im(U(blob));g.from='mem';lgUI(id);
+ if(save){const ok=await DB.set(g.st,blob);if(ok===null)$(id+'s').textContent='⚠ এখন আছে, কিন্তু সেভ করা যায়নি (প্রাইভেট মোড?)'}}
+function logo(id){
+ const g=LG[id];
+ $(id).onchange=e=>{const f=e.target.files[0];if(f)lgSet(id,f,true)};
+ $(id+'x').onclick=async()=>{S[g.key]=null;$(id).value='';await DB.del(g.st);lgUI(id)};
+ (async()=>{
+  const b=await DB.get(g.st);
+  if(b){await lgSet(id,b,false);return}
+  try{const d=localStorage.getItem(id=='lr'?'nl_r':'nl_w');if(d){await lgSet(id,await (await fetch(d)).blob(),true);return}}catch(_){}
+  const i=await im(g.file);if(i){S[g.key]=i;g.from='repo'}
+  lgUI(id)})()}
+logo('lr');logo('lw');
+try{const v=JSON.parse(localStorage.getItem('nl_set')||'{}');if(v.pe)$('pe').value=v.pe;if(v.du)$('du').value=v.du}catch(_){}
+const saveSet=()=>{try{localStorage.setItem('nl_set',JSON.stringify({pe:$('pe').value,du:$('du').value}))}catch(_){}};
 /* ---------- বাইট ---------- */
 function addBite(){
  const d=document.createElement('div');d.className='row';
@@ -245,15 +273,15 @@ function playSlice(s){
  clearTimeout(sliceT);const v=S.vo.el;if(AC)AC.resume();
  v.currentTime=s.vo0;v.play();sliceT=setTimeout(()=>v.pause(),s.dur*1000)}
 function refresh(){layout();renderTL()}
-function showFrame(s){if(run||!TL||!s)return;fonts.then(()=>draw(cl(s.start+.8,2.8,TL.T-1.5)))}
+function showFrame(s){if(run||!TL||!s)return;setPos(cl(s.start+.8,2.8,TL.T-1.5))}
 function stripR(){
  const sp=$('strip');sp.innerHTML='';
- if(!TL){$('ti').textContent='';return}
+ if(!TL){$('ti').textContent='';updSk();return}
  $('ti').textContent='— মোট '+fm(TL.T)+(S.pa?' · ভয়েসের '+S.pa.sil.length+'টি বিরতি ধরে মেলানো':'');
  const tot=TL.T-1.2;
  TL.segs.forEach(s=>{const d=document.createElement('div');d.className=s.k;d.style.flex=s.dur/tot;
   const m=s.meds[0];if(m&&m.type=='img')d.style.backgroundImage='url('+m.el.src+')';
-  d.title=fm(s.start)+' '+(s.k=='bite'?s.bite.name:s.text.slice(0,30));d.onclick=()=>showFrame(s);sp.appendChild(d)})}
+  d.title=fm(s.start)+' '+(s.k=='bite'?s.bite.name:s.text.slice(0,30));d.onclick=()=>showFrame(s);sp.appendChild(d)});updSk()}
 function updLabels(){
  stripR();
  S.rows.forEach(r=>{
@@ -266,6 +294,7 @@ function footZone(r){
  r.meds.forEach((m,j)=>{const c=document.createElement('span');c.className='fc';
   if(m.type=='img'){const g=document.createElement('img');g.src=m.el.src;c.appendChild(g)}else c.append('🎬 ');
   c.append((S.media.indexOf(m)+1)+'. '+m.name.slice(0,14));
+  const cb=document.createElement('button');cb.className='x';cb.textContent=m.crop?'✂✓':'✂';cb.title='ক্রপ';cb.onclick=()=>openCrop(m);c.appendChild(cb);
   const x=document.createElement('button');x.className='x';x.textContent='✕';x.onclick=()=>{r.meds.splice(j,1);refresh()};c.appendChild(x);dz.appendChild(c)});
  if(!r.meds.length)dz.append(r.k=='bite'?'ফুটেজ (ঐচ্ছিক) ছাড়ুন':'ফুটেজ এখানে ছাড়ুন');
  const s1=document.createElement('select');s1.add(new Option('＋ ফুটেজ',''));S.media.forEach((m,j)=>s1.add(new Option((j+1)+'. '+m.name,j)));
@@ -303,7 +332,38 @@ function renderTL(){
 $('as').onclick=()=>{const n={k:'vo',text:'',meds:[]};S.rows.push(n);S.focus=n;refresh()};
 $('ab').onchange=()=>{const v=$('ab').value;if(v!==''){S.rows.push({k:'bite',bite:S.bites[+v],meds:[]});refresh()}};
 $('bd').onclick=()=>{if(S.rows.length&&!confirm('টাইমলাইনের বর্তমান লাইনগুলো মুছে যাবে। চালিয়ে যাবেন?'))return;buildRows()};
+/* ---------- ক্রপ ---------- */
+let CM=null,cdrag=null;
+const cropMax=m=>Math.min(m.w,m.h*16/9);
+function openCrop(m){
+ if(run)return;
+ CM={m,z:1,cx:m.w/2,cy:m.h/2};
+ if(m.crop){const c=m.crop;CM.cx=c.x+c.w/2;CM.cy=c.y+c.h/2;CM.z=cl(cropMax(m)/c.w,1,5)}
+ $('cz').value=CM.z;$('cm').hidden=false;
+ if(m.type=='vid'){m.el.pause();m.el.onseeked=()=>{m.el.onseeked=null;cdraw()};m.el.currentTime=Math.min(1,(m.dur||2)/2)}
+ cdraw()}
+function cbox(){const m=CM.m,w=cropMax(m)/CM.z,h=w*9/16;CM.cx=cl(CM.cx,w/2,m.w-w/2);CM.cy=cl(CM.cy,h/2,m.h-h/2);return{x:CM.cx-w/2,y:CM.cy-h/2,w,h}}
+function cdraw(){
+ if(!CM)return;const m=CM.m,c=$('cc'),x=c.getContext('2d'),sc=Math.min(760/m.w,420/m.h);
+ c.width=Math.max(10,Math.round(m.w*sc));c.height=Math.max(10,Math.round(m.h*sc));
+ try{x.drawImage(m.el,0,0,c.width,c.height);x.fillStyle='rgba(0,0,0,.6)';x.fillRect(0,0,c.width,c.height);
+  const b=cbox();x.drawImage(m.el,b.x,b.y,b.w,b.h,b.x*sc,b.y*sc,b.w*sc,b.h*sc);
+  x.strokeStyle='#fff';x.lineWidth=2;x.strokeRect(b.x*sc,b.y*sc,b.w*sc,b.h*sc);
+  x.strokeStyle='rgba(255,255,255,.35)';x.lineWidth=1;x.beginPath();
+  for(let i=1;i<3;i++){x.moveTo((b.x+b.w*i/3)*sc,b.y*sc);x.lineTo((b.x+b.w*i/3)*sc,(b.y+b.h)*sc);x.moveTo(b.x*sc,(b.y+b.h*i/3)*sc);x.lineTo((b.x+b.w)*sc,(b.y+b.h*i/3)*sc)}
+  x.stroke()}catch(_){}}
+function closeCrop(){$('cm').hidden=true;CM=null;chips();renderTL()}
+const cc=$('cc');
+cc.onpointerdown=e=>{cdrag={x:e.clientX,y:e.clientY};cc.setPointerCapture(e.pointerId)};
+cc.onpointermove=e=>{if(!cdrag||!CM)return;const k=CM.m.w/cc.getBoundingClientRect().width;CM.cx+=(e.clientX-cdrag.x)*k;CM.cy+=(e.clientY-cdrag.y)*k;cdrag={x:e.clientX,y:e.clientY};cdraw()};
+cc.onpointerup=()=>cdrag=null;
+cc.onwheel=e=>{if(!CM)return;e.preventDefault();CM.z=cl(CM.z*(e.deltaY<0?1.06:.94),1,5);$('cz').value=CM.z;cdraw()};
+$('cz').oninput=()=>{if(CM){CM.z=+$('cz').value;cdraw()}};
+$('cok').onclick=()=>{if(!CM)return;const b=cbox();CM.m.crop={x:b.x,y:b.y,w:b.w,h:b.h};closeCrop()};
+$('crs').onclick=()=>{if(!CM)return;delete CM.m.crop;closeCrop()};
+$('cx').onclick=closeCrop;
 /* ---------- drawing ---------- */
+const lc=document.createElement('canvas'),lx=lc.getContext('2d');
 const bl=document.createElement('canvas');bl.width=64;bl.height=36;const bx=bl.getContext('2d');
 const MO=[[1,1.16,0,0,0,0],[1.16,1,0,0,0,0],[1.14,1.14,-.04,.04,0,0],[1.14,1.14,.04,-.04,0,0],[1.08,1.2,0,0,.02,-.03],[1.2,1.06,-.025,.025,-.02,.02]];
 function drawSub(sb,t,p,frozen){
@@ -313,14 +373,14 @@ function drawSub(sb,t,p,frozen){
  ctx.save();ctx.globalAlpha=a;
  if(!m){const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,'#1b2145');g.addColorStop(1,'#0a0c1c');ctx.fillStyle=g;ctx.fillRect(px,0,W,H)}
  else if(m.w){
-  const contain=m.w/m.h<1.45,q=u*u*(3-2*u),mo=m.type=='vid'?[1.02,1.07,0,0,0,0]:MO[sb.i%6],k=contain?.5:1;
+  const cr=m.crop,ew=cr?cr.w:m.w,eh=cr?cr.h:m.h,contain=!cr&&m.w/m.h<1.45,q=u*u*(3-2*u),mo=m.type=='vid'?[1.02,1.07,0,0,0,0]:MO[sb.i%6],k=contain?.5:1;
   if(contain){const s0=Math.max(64/m.w,36/m.h);bx.drawImage(m.el,(64-m.w*s0)/2,(36-m.h*s0)/2,m.w*s0,m.h*s0);
    ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(bl,px,0,W,H);ctx.fillStyle='rgba(0,0,0,.42)';ctx.fillRect(px,0,W,H)}
   let z=mo[0]+(mo[1]-mo[0])*q;z=contain?1+(z-1)*.55:z;
-  const s=(contain?Math.min(W/m.w,H/m.h):Math.max(W/m.w,H/m.h))*z*zm,dw=m.w*s,dh=m.h*s;
+  const s=(contain?Math.min(W/ew,H/eh):Math.max(W/ew,H/eh))*z*zm,dw=ew*s,dh=eh*s;
   const ox=(mo[2]+(mo[3]-mo[2])*q)*W*k,oy=(mo[4]+(mo[5]-mo[4])*q)*H*k;
   if(contain){ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=40}
-  ctx.drawImage(m.el,(W-dw)/2+px+ox,(H-dh)/2+oy,dw,dh)}
+  if(cr)ctx.drawImage(m.el,cr.x,cr.y,cr.w,cr.h,(W-dw)/2+px+ox,(H-dh)/2+oy,dw,dh);else ctx.drawImage(m.el,(W-dw)/2+px+ox,(H-dh)/2+oy,dw,dh)}
  ctx.restore()}
 function tag(a,b,t0,t1,t,y){
  const k=cl(Math.min((t-t0)/.45,(t1-t)/.4));if(k<=0)return;
@@ -343,9 +403,14 @@ function draw(t){
   if(S.logoR){const w=440,h=w*S.logoR.naturalHeight/S.logoR.naturalWidth;ctx.drawImage(S.logoR,-w/2,-h/2,w,h)}
   else{ctx.fillStyle='#d90f1f';ctx.beginPath();ctx.arc(0,0,200,0,7);ctx.fill()}
   ctx.restore()}
- if(t>1.9){const a=cl((t-1.9)/.5);ctx.save();ctx.globalAlpha=a;ctx.translate((1-eo(a))*60,0);
-  if(S.logoW){const w=320,h=w*S.logoW.naturalHeight/S.logoW.naturalWidth;ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=14;ctx.drawImage(S.logoW,W-60-w,50,w,h)}
-  ctx.restore()}
+ if(t>1.9&&S.logoW){
+  const a=cl((t-1.9)/.5),L=S.logoW,w=320,h=Math.round(w*L.naturalHeight/L.naturalWidth),br=Math.sin(t*1.7);
+  if(lc.width!==w||lc.height!==h){lc.width=w;lc.height=h}
+  lx.globalCompositeOperation='source-over';lx.clearRect(0,0,w,h);lx.drawImage(L,0,0,w,h);
+  const q=((t-2.4)%5)/1.3;
+  if(q>=0&&q<=1){const x0=-w*.5+w*2*q,g=lx.createLinearGradient(x0,0,x0+w*.4,h);g.addColorStop(0,'rgba(255,200,90,0)');g.addColorStop(.5,'rgba(255,196,80,.95)');g.addColorStop(1,'rgba(255,200,90,0)');lx.globalCompositeOperation='source-atop';lx.fillStyle=g;lx.fillRect(0,0,w,h)}
+  ctx.save();ctx.globalAlpha=a;ctx.translate(W-60-w/2+(1-eo(a))*60,50+h/2+br*5);const sc=1+.025*br;ctx.scale(sc,sc);
+  ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=14+5*br;ctx.drawImage(lc,-w/2,-h/2);ctx.restore()}
  const cs=segs.find(s=>t>=s.start&&t<s.end);
  if(cs&&cs.k=='bite'){
   const sh=shift(t-(cs.start+.3),cs.dur-.5);
@@ -368,11 +433,26 @@ function draw(t){
 }
 /* ---------- playback / record ---------- */
 function stopAll(){S.media.forEach(m=>m.type=='vid'&&m.el.pause());S.bites.forEach(b=>b.m&&b.m.el.pause());S.vo&&S.vo.el.pause()}
-async function go(rec){
+function updSk(){if(!TL){$('skt').textContent='0:00 / 0:00';return}$('sk').value=Math.round(cl(S.pos/TL.T)*1000);$('skt').textContent=fm(S.pos)+' / '+fm(TL.T)}
+function drawAt(t){
+ if(!TL)return;
+ fonts.then(()=>{
+  const sb=TL.subs.find(x=>t>=x.s&&t<x.e);
+  if(sb&&sb.m&&sb.m.type=='vid'){const v=sb.m.el,tt=(t-sb.s)%(sb.m.dur||1);
+   if(Math.abs(v.currentTime-tt)>.05){v.onseeked=()=>{v.onseeked=null;if(!run)draw(t)};v.currentTime=tt}}
+  draw(t)})}
+function setPos(t){S.pos=t;updSk();drawAt(t)}
+let dragging=false;
+$('sk').onpointerdown=()=>dragging=true;
+addEventListener('pointerup',()=>dragging=false);
+$('sk').oninput=()=>{if(!TL)layout();if(!TL)return;const t=$('sk').value/1000*TL.T;if(run){if(!run.rec)run.seek(t)}else setPos(t)};
+async function go(rec,from=0){
  if(run)return;
+ run={stop(){},seek(){}};
+ const bail=m=>{run=null;$('st').textContent=m};
  await fonts;if(S.ap)await S.ap;
- if(!S.rows.length){if(!($('sc').value.trim()&&buildRows())){$('st').textContent='টাইমলাইনে স্ক্রিপ্ট যোগ করুন';return}}
- layout();if(!TL){$('st').textContent='টাইমলাইন খালি';return}
+ if(!S.rows.length){if(!($('sc').value.trim()&&buildRows()))return bail('টাইমলাইনে স্ক্রিপ্ট যোগ করুন')}
+ layout();if(!TL)return bail('টাইমলাইন খালি');
  initAudio();await AC.resume();
  let mr,ch=[];
  if(rec){
@@ -382,34 +462,36 @@ async function go(rec){
   mr.ondataavailable=e=>e.data.size&&ch.push(e.data);
   mr.onstop=()=>{const b=new Blob(ch,{type:mr.mimeType}),a=document.createElement('a');a.href=U(b);a.download='news-package.'+(mr.mimeType.includes('mp4')?'mp4':'webm');a.click();$('st').textContent='✅ ডাউনলোড হয়েছে'+(mr.mimeType.includes('mp4')?'':' (WebM — mp4 দরকার হলে কনভার্ট করুন)')};
   mr.start(500)}
- const {segs,subs,T,per}=TL;let ls=null,lsub=null,lk=-1,raf;
+ const {segs,subs,T,per}=TL;let ls=null,lsub=null,lk=-1,raf,curT=from,t0=performance.now()-from*1000;
  if(S.vo)tap(S.vo.el);S.bites.forEach(b=>b.m&&tap(b.m.el));
- hit();const t0=performance.now();
- const end=()=>{cancelAnimationFrame(raf);stopAll();run=null;mr&&mr.state!='inactive'&&mr.stop();if(!rec)$('st').textContent='প্রিভিউ শেষ'};
- run={stop:end};
+ if(from<.3)hit();
+ $('pv').textContent='⏸ পজ';$('sk').disabled=!!rec;
+ const end=done=>{cancelAnimationFrame(raf);stopAll();run=null;S.pos=done?T:curT;updSk();$('pv').textContent='▶ প্রিভিউ';$('sk').disabled=false;mr&&mr.state!='inactive'&&mr.stop();if(!rec)$('st').textContent=done?'প্রিভিউ শেষ':'থামানো আছে'};
+ run={rec,stop:()=>end(false),seek:nt=>{t0=performance.now()-nt*1000;ls=null;lsub=null;lk=Math.floor((nt-2.4)/per);stopAll()}};
  const tick=()=>{
-  const t=(performance.now()-t0)/1000;
-  if(t>=T){draw(T);end();return}
+  const t=(performance.now()-t0)/1000;curT=t;
+  if(t>=T){draw(T);end(true);return}
   $('st').textContent=(rec?'⏺ রেকর্ড হচ্ছে… ':'▶ ')+Math.floor(t)+' / '+Math.floor(T)+' সেকেন্ড';
+  S.pos=t;if(!dragging)updSk();
   const sg=segs.find(s=>t>=s.start&&t<s.end);
   if(sg&&sg!==ls){
    if(ls&&ls.k=='bite')ls.bite.m.el.pause();
-   if(sg.k=='vo'&&S.vo){const v=S.vo.el;if(Math.abs(v.currentTime-sg.vo0)>.25)v.currentTime=sg.vo0;v.play()}
-   else if(sg.k=='bite'){S.vo&&S.vo.el.pause();sg.bite.m.el.currentTime=0;sg.bite.m.el.play();pop()}
+   if(sg.k=='vo'&&S.vo){const v=S.vo.el,tg=sg.vo0+(t-sg.start);if(Math.abs(v.currentTime-tg)>.25)v.currentTime=tg;v.play()}
+   else if(sg.k=='bite'){S.vo&&S.vo.el.pause();const bv=sg.bite.m.el;bv.currentTime=t-sg.start;bv.play();if(t-sg.start<.3)pop()}
    ls=sg}
   const sb=subs.find(s=>t>=s.s&&t<s.e);
   if(sb&&sb!==lsub){
    if(lsub){whoosh();if(lsub.m&&lsub.m.type=='vid'&&lsub.seg.k=='vo')lsub.m.el.pause()}
-   if(sb.m&&sb.m.type=='vid'&&sb.seg.k=='vo'){sb.m.el.currentTime=0;sb.m.el.play()}
+   if(sb.m&&sb.m.type=='vid'&&sb.seg.k=='vo'){sb.m.el.currentTime=(t-sb.s)%(sb.m.dur||1);sb.m.el.play()}
    lsub=sb}
   const L=t-2.4;
   if(L>=0&&!(sg&&sg.k=='bite')){const k=Math.floor(L/per);if(k!==lk&&L-k*per<.15){lk=k;pop()}}
   draw(t);raf=requestAnimationFrame(tick)};
  tick()}
-$('pv').onclick=()=>go(false);
-$('rc').onclick=()=>go(true);
-$('sp').onclick=()=>run&&run.stop();
-$('pe').onchange=$('du').onchange=refresh;
+$('pv').onclick=()=>{if(run){if(!run.rec)run.stop();return}if(!TL)layout();go(false,TL&&S.pos<TL.T-.3?S.pos:0)};
+$('rc').onclick=()=>go(true,0);
+$('sp').onclick=()=>{if(run)run.stop();S.pos=0;if(!TL)layout();updSk();drawAt(0)};
+$('pe').onchange=$('du').onchange=()=>{saveSet();refresh()};
 addBite();
 ctx.fillStyle='#111';ctx.fillRect(0,0,W,H);
 </script></body></html>
